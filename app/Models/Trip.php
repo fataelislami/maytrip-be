@@ -67,6 +67,16 @@ class Trip extends Model
         return $this->belongsToMany(User::class, 'saves')->withTimestamps();
     }
 
+    /**
+     * Users who hit "like" on this trip — pivot table `likes`. The
+     * denormalised counter lives in `trips.likes_count` and is kept in sync
+     * by LikeController on every toggle.
+     */
+    public function likedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'likes')->withTimestamps();
+    }
+
     public function budgetAccessRequests(): HasMany
     {
         return $this->hasMany(BudgetAccessRequest::class);

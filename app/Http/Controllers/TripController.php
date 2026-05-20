@@ -50,6 +50,7 @@ class TripController extends Controller
         $trip = Trip::whereHas('user', fn ($q) => $q->where('username', $username))
             ->where('slug', $slug)
             ->with(['user', 'sections', 'items', 'galleryPhotos'])
+            ->withCount('savedBy')
             ->firstOrFail();
 
         // Identify viewer via Sanctum token (works on public routes too)

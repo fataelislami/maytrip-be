@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\BudgetRequestController;
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\MyTripController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SaveController;
@@ -81,6 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me/saves', [SaveController::class, 'index']);
     Route::post('/me/saves', [SaveController::class, 'store']);
     Route::delete('/me/saves/{trip}', [SaveController::class, 'destroy']);
+
+    Route::post('/trips/{trip}/like', [LikeController::class, 'toggle'])
+        ->whereNumber('trip');
 
     // Budget-access requests. Creation is throttled so a bored attacker can't
     // flood owners with notifications by hammering different trips.

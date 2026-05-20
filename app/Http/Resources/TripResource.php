@@ -78,6 +78,12 @@ class TripResource extends JsonResource
             // Falls back to 0 when not pre-loaded so single-trip endpoints
             // don't have to opt in.
             'saves' => (int) ($this->saved_by_count ?? 0),
+            // Whether the current viewer has liked this trip — used to render
+            // the heart filled / unfilled. Unauthenticated viewers are
+            // always "not liked".
+            'liked' => $viewer
+                ? $this->likedBy()->where('user_id', $viewer->id)->exists()
+                : false,
             'createdAt' => $this->created_at->toIso8601String(),
         ];
     }

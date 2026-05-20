@@ -16,6 +16,7 @@ class ShareController extends Controller
     {
         $trip = Trip::where('share_token', $token)
             ->with(['user', 'sections', 'items', 'galleryPhotos'])
+            ->withCount('savedBy')
             ->firstOrFail();
 
         if ($trip->trip_visibility === 'private') {

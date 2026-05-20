@@ -1,0 +1,77 @@
+# Production stack for Maytrip backend.
+#
+# Deploy flow on the VPS:
+#   git pull
+#   docker compose -f docker-compose.prod.yml up -d --build
+#   ./deploy/update.sh
+#
+# Files on the host live at /opt/maytrip-be (or wherever you cloned to).
+# The whole app dir is bind-mounted into both caddy (read-only) and php (rw)
+# so `git pull` is enough to ship code changes — no image rebuild needed.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    env_file: .env.production
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./:/var/www/html:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - php
+    networks: [maytrip]
+
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        WWWUSER: ${WWWUSER:-1000}
+        WWWGROUP: ${WWWGROUP:-1000}
+    image: maytrip-be-php:latest
+    restart: unless-stopped
+    env_file: .env.production
+    volumes:
+      - ./:/var/www/html
+      - uploads_data:/var/www/html/storage/app/public
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks: [maytrip]
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    command: --default-authentication-plugin=caching_sha2_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/maytrip.cnf:/etc/mysql/conf.d/maytrip.cnf:ro
+    networks: [maytrip]
+    # No host port exposed — DB is only reachable from inside the docker network.
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+networks:
+  maytrip:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
+  mysql_data:
+  uploads_data:

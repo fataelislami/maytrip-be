@@ -1,0 +1,20 @@
+[mysqld]
+# Tuned for a 2 GB VPS shared with PHP-FPM + Caddy.
+innodb_buffer_pool_size = 256M
+innodb_log_file_size = 64M
+max_connections = 50
+performance_schema = OFF
+table_open_cache = 200
+tmp_table_size = 32M
+max_heap_table_size = 32M
+key_buffer_size = 16M
+
+# Charset / collation
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+# Binary log — disabled to save disk on a tiny VPS
+skip-log-bin
+
+# Use SSL inside Docker network is overkill; leave off
+skip-ssl

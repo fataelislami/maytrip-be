@@ -254,9 +254,12 @@ class MyTripController extends Controller
             'description' => ['nullable', 'string', 'max:2000'],
             // Restrict scheme to http/https everywhere we'll later render this
             // value as href/src to block javascript: / data: XSS vectors.
-            'coverUrl' => ['nullable', 'url:http,https', 'max:500'],
+            // Use a regex instead of Laravel's `url` rule — the latter relies
+            // on PHP's FILTER_VALIDATE_URL which rejects valid URLs with `@`
+            // in the path (e.g. Google Maps share links).
+            'coverUrl' => ['nullable', 'string', 'regex:/^https?:\/\/[^\s]+$/i', 'max:2000'],
             'galleryUrls' => ['nullable', 'array', 'max:10'],
-            'galleryUrls.*' => ['url:http,https', 'max:500'],
+            'galleryUrls.*' => ['string', 'regex:/^https?:\/\/[^\s]+$/i', 'max:2000'],
             'budgetVisibility' => ['nullable', Rule::in(['public', 'hidden', 'request'])],
             'tripVisibility' => ['nullable', Rule::in(['public', 'unlisted', 'private'])],
             'sections' => ['nullable', 'array'],
@@ -271,7 +274,7 @@ class MyTripController extends Controller
             'items.*.timeStart' => ['nullable', 'string', 'max:5'],
             'items.*.timeEnd' => ['nullable', 'string', 'max:5'],
             'items.*.quantity' => ['nullable', 'integer', 'min:1'],
-            'items.*.sourceUrl' => ['nullable', 'url:http,https', 'max:500'],
+            'items.*.sourceUrl' => ['nullable', 'string', 'regex:/^https?:\/\/[^\s]+$/i', 'max:2000'],
             'items.*.status' => ['nullable', Rule::in(['planned', 'spent', 'cancelled'])],
             'items.*.source' => ['nullable', Rule::in(['manual', 'story', 'extension'])],
         ]);

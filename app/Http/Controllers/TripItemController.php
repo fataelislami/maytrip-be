@@ -155,10 +155,12 @@ class TripItemController extends Controller
             'timeStart' => ['sometimes', 'nullable', 'string', 'max:5'],
             'timeEnd' => ['sometimes', 'nullable', 'string', 'max:5'],
             'quantity' => ['sometimes', 'nullable', 'integer', 'min:1'],
-            // Restrict scheme to http/https — Laravel's bare `url` rule allows
-            // anything `parse_url` accepts, including `javascript:` which is
-            // an XSS vector when this string is later rendered as an href.
-            'sourceUrl' => ['sometimes', 'nullable', 'url:http,https', 'max:500'],
+            // Restrict scheme to http/https — protects against `javascript:`
+            // / `data:` XSS when this string is later rendered as an href.
+            // We use a regex instead of Laravel's `url` rule because PHP's
+            // FILTER_VALIDATE_URL rejects perfectly valid URLs with `@` in
+            // the path (most notably every Google Maps share link).
+            'sourceUrl' => ['sometimes', 'nullable', 'string', 'regex:/^https?:\/\/[^\s]+$/i', 'max:2000'],
             'status' => ['sometimes', 'nullable', Rule::in(['planned', 'spent', 'cancelled'])],
             'source' => ['sometimes', 'nullable', Rule::in(['manual', 'story', 'extension'])],
         ];

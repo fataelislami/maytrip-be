@@ -1,4 +1,4 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 RUN apk add --no-cache \
         bash \
@@ -35,6 +35,11 @@ RUN apk add --no-cache \
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Trust the bind-mounted app directory for git operations triggered by composer
+# scripts (Laravel package discovery, etc.). UIDs may not match between host
+# and container, which would otherwise raise "dubious ownership" warnings.
+RUN git config --system --add safe.directory /var/www/html
 
 # PHP runtime tuning for a small VPS
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/maytrip.ini

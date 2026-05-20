@@ -11,6 +11,14 @@ RUN apk add --no-cache \
         libjpeg-turbo-dev \
         freetype-dev \
         mysql-client \
+    # Build tools needed to compile PHP extensions; removed after install
+    && apk add --no-cache --virtual .build-deps \
+        autoconf \
+        g++ \
+        gcc \
+        make \
+        linux-headers \
+        pkgconf \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
@@ -22,7 +30,8 @@ RUN apk add --no-cache \
         zip \
         opcache \
     && pecl install redis \
-    && docker-php-ext-enable redis
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

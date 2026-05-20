@@ -207,7 +207,7 @@ bash deploy/update.sh
 
 Use `--build` flag manually if you change the Dockerfile or PHP extensions:
 ```bash
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
 bash deploy/update.sh
 ```
 
@@ -215,25 +215,25 @@ bash deploy/update.sh
 
 ```bash
 # Logs (all services)
-docker compose -f docker-compose.prod.yml logs -f
+docker compose --env-file .env.production -f docker-compose.prod.yml logs -f
 
 # Logs (one service)
-docker compose -f docker-compose.prod.yml logs -f php
+docker compose --env-file .env.production -f docker-compose.prod.yml logs -f php
 
 # Shell into php container
-docker compose -f docker-compose.prod.yml exec php sh
+docker compose --env-file .env.production -f docker-compose.prod.yml exec php sh
 
 # Run artisan command
-docker compose -f docker-compose.prod.yml exec php php artisan tinker
+docker compose --env-file .env.production -f docker-compose.prod.yml exec php php artisan tinker
 
 # Restart one service
-docker compose -f docker-compose.prod.yml restart caddy
+docker compose --env-file .env.production -f docker-compose.prod.yml restart caddy
 
 # Stop everything
-docker compose -f docker-compose.prod.yml down
+docker compose --env-file .env.production -f docker-compose.prod.yml down
 
 # Stop + remove volumes (DANGER — wipes DB and uploads)
-docker compose -f docker-compose.prod.yml down -v
+docker compose --env-file .env.production -f docker-compose.prod.yml down -v
 
 # Disk usage
 docker system df

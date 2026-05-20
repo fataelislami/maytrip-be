@@ -19,7 +19,7 @@ STAMP=$(date -u +"%Y%m%d-%H%M%S")
 FILE="$BACKUP_DIR/maytrip-${STAMP}.sql.gz"
 
 echo "→ Dumping ${DB_DATABASE} to ${FILE}"
-docker compose -f docker-compose.prod.yml exec -T mysql \
+docker compose --env-file .env.production -f docker-compose.prod.yml exec -T mysql \
     mysqldump --single-transaction --quick --routines --triggers \
         -u root -p"${DB_ROOT_PASSWORD}" "${DB_DATABASE}" \
     | gzip -9 > "$FILE"

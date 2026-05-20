@@ -51,6 +51,14 @@ if ! grep -E "^APP_KEY=base64:" .env.production >/dev/null; then
     KEY=$(docker compose --env-file .env.production -f docker-compose.prod.yml exec -T php php artisan key:generate --show)
     sed -i "s|^APP_KEY=.*|APP_KEY=${KEY}|" .env.production
     docker compose --env-file .env.production -f docker-compose.prod.yml restart php
+    # Wait for php container to come back up before issuing more artisan commands.
+    echo "  ... waiting for php to come back up"
+    for i in {1..15}; do
+        if docker compose --env-file .env.production -f docker-compose.prod.yml exec -T php php -r "echo 'ok';" 2>/dev/null | grep -q ok; then
+            break
+        fi
+        sleep 1
+    done
 fi
 
 echo "→ Running database migrations"
@@ -59,7 +67,12 @@ docker compose --env-file .env.production -f docker-compose.prod.yml exec -T php
 echo "→ Linking storage (public uploads)"
 docker compose --env-file .env.production -f docker-compose.prod.yml exec -T php php artisan storage:link || true
 
-echo "→ Caching config, routes, views"
+# Clear any config cache from a previous run before re-caching with the
+# current env — without this, a stale config (e.g. empty APP_KEY) survives.
+echo "→ Rebuilding config / route / view caches"
+docker compose --env-file .env.production -f docker-compose.prod.yml exec -T php php artisan config:clear
+docker compose --env-file .env.production -f docker-compose.prod.yml exec -T php php artisan route:clear
+docker compose --env-file .env.production -f docker-compose.prod.yml exec -T php php artisan view:clear
 docker compose --env-file .env.production -f docker-compose.prod.yml exec -T php php artisan config:cache
 docker compose --env-file .env.production -f docker-compose.prod.yml exec -T php php artisan route:cache
 docker compose --env-file .env.production -f docker-compose.prod.yml exec -T php php artisan view:cache

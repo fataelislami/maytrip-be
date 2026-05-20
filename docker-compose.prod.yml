@@ -24,6 +24,9 @@ services:
     volumes:
       - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./:/var/www/html:ro
+      # Share the uploads volume read-only so Caddy can serve /storage/* URLs
+      # directly without going through PHP.
+      - uploads_data:/var/www/html/storage/app/public:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

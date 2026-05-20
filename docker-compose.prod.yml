@@ -11,7 +11,10 @@
 
 services:
   caddy:
-    image: caddy:2-alpine
+    build:
+      context: .
+      dockerfile: docker/caddy/Dockerfile
+    image: maytrip-be-caddy:latest
     restart: unless-stopped
     ports:
       - "80:80"

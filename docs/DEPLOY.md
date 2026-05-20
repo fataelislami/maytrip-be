@@ -21,10 +21,26 @@ In the Cloudflare dashboard for `maytrip.co`:
 
 | Type | Name | Content        | Proxy |
 | ---- | ---- | -------------- | ----- |
-| A    | api  | `<VPS_IP_v4>`  | DNS only (grey cloud — Caddy needs to see real client IP and handle TLS itself) |
-| A    | @    | `<VPS_IP_v4>`  | (optional, only if you host the marketing site on the VPS too — for Cloudflare Pages, point to the Pages target instead) |
+| A    | api  | `<VPS_IP_v4>`  | **Proxied (orange cloud)** — for DDoS protection + edge caching |
+| A    | @    | (Cloudflare Pages or VPS) | depends on where frontend lives |
 
-Wait ~2 minutes for propagation. Verify:
+Then **SSL/TLS → Overview**, set encryption mode to **Full (strict)**.
+
+Then create a Cloudflare API token (used by Caddy to solve DNS-01 challenges
+for the origin cert):
+
+1. Go to https://dash.cloudflare.com/profile/api-tokens
+2. Click **Create Token** → **Get started** (Custom token)
+3. Name: `Caddy DNS-01 (maytrip)`
+4. Permissions:
+   - **Zone : Zone : Read**
+   - **Zone : DNS : Edit**
+5. Zone Resources: **Include : Specific zone : maytrip.co**
+6. **Create Token** → copy the value (shown once).
+
+You'll paste this into `.env.production` as `CLOUDFLARE_API_TOKEN`.
+
+Verify DNS:
 ```bash
 dig +short api.maytrip.co
 ```

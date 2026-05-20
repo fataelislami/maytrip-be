@@ -1,20 +1,37 @@
 # Production Caddyfile — handles HTTPS termination, gzip, static assets,
 # and proxies PHP requests to php-fpm.
 #
-# Override the host with APP_DOMAIN in .env.production (default api.maytrip.co).
+# Cloudflare is in front of this origin (proxy enabled), so:
+#   1. Let's Encrypt cert is issued via the Cloudflare DNS-01 challenge
+#      (HTTP-01 won't work — port 80 from the internet is at CF, not us).
+#   2. Real client IP is read from CF's headers, with CF's address ranges
+#      whitelisted as trusted proxies.
+#
+# Required env in .env.production: APP_DOMAIN, CLOUDFLARE_API_TOKEN.
+
+{
+    # Trust Cloudflare's published address ranges so $remote_addr and
+    # $X-Forwarded-For reflect the real client, not Cloudflare's edge.
+    servers {
+        trusted_proxies cloudflare
+        client_ip_headers Cf-Connecting-Ip X-Forwarded-For
+    }
+}
 
 {$APP_DOMAIN:api.maytrip.co} {
+    tls {
+        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+    }
+
     root * /var/www/html/public
 
     encode gzip zstd
 
-    # Long cache for fingerprinted assets and uploads
     @assets {
         path /storage/* /build/* *.css *.js *.png *.jpg *.jpeg *.webp *.svg *.ico *.woff2
     }
     header @assets Cache-Control "public, max-age=2592000, immutable"
 
-    # Security headers (HSTS only kicks in once cert is live)
     header {
         Strict-Transport-Security "max-age=31536000; includeSubDomains"
         X-Content-Type-Options "nosniff"

@@ -16,5 +16,6 @@ collation-server = utf8mb4_unicode_ci
 # Binary log — disabled to save disk on a tiny VPS
 skip-log-bin
 
-# Use SSL inside Docker network is overkill; leave off
-skip-ssl
+# Disable mandatory TLS for clients inside the docker network.
+# (skip-ssl was removed in MySQL 8.4.)
+require_secure_transport = OFF
